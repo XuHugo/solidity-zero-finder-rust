@@ -1,7 +1,4 @@
-extern crate crypto;
-
-use self::crypto::digest::Digest;
-use self::crypto::sha3::Sha3;
+use sha3::{Digest, Keccak256};
 use std::env;
 use std::process;
 use std::thread;
@@ -26,10 +23,11 @@ fn search(start: usize, step: &usize, function_name: &str, leading: &bool) {
     for i in (start..1000000000).step_by(*step) {
         let hex_num = format!("{:X}", i);
         let candidate = function_name.replace("?", &hex_num);
-        let mut hasher = Sha3::keccak256();
+        let mut hasher = Keccak256::new();
 
-        hasher.input_str(&candidate);
-        let hash_result = hasher.result_str();
+        hasher.update(&candidate.as_bytes());
+        let hash_bytes = hasher.finalize();
+        let hash_result = hex::encode(&hash_bytes);
         let num_zero_bytes = num_zeros(&hash_result, &leading);
         if num_zero_bytes == 4 {
             continue;
